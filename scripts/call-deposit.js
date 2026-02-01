@@ -3,7 +3,16 @@ const { ethers } = require("ethers");
 
 // Contract configuration
 const CONTRACT_ADDRESS = process.env.STAKING_VAULT_MANAGER;
-const DEPOSIT_AMOUNT = ethers.parseEther("0.01"); // 0.01 HYPE
+const DEFAULT_DEPOSIT_AMOUNT = "0.01"; // HYPE
+const DEPOSIT_AMOUNT = ethers.parseEther(
+  process.env.DEPOSIT_AMOUNT ?? DEFAULT_DEPOSIT_AMOUNT
+);
+const DEFAULT_GAS_LIMIT = 800000;
+const GAS_LIMIT = Number(process.env.GAS_LIMIT ?? DEFAULT_GAS_LIMIT);
+const DEFAULT_TESTNET_RPC_URL = "https://rpc.hyperliquid-testnet.xyz/evm";
+const DEFAULT_MAINNET_RPC_URL = "https://rpc.hyperliquid.xyz/evm";
+const TESTNET_RPC_URL = process.env.TESTNET_RPC_URL ?? DEFAULT_TESTNET_RPC_URL;
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL ?? DEFAULT_MAINNET_RPC_URL;
 const IS_TESTNET = process.env.IS_TESTNET !== "false"; // Default to true if not specified
 
 // Contract ABI - only the deposit function we need
@@ -25,9 +34,7 @@ async function main() {
     }
 
     // Set up provider based on network
-    const rpcUrl = IS_TESTNET
-      ? "https://rpc.hyperliquid-testnet.xyz/evm"
-      : "https://rpc.hyperliquid.xyz/evm";
+    const rpcUrl = IS_TESTNET ? TESTNET_RPC_URL : MAINNET_RPC_URL;
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
 
@@ -73,7 +80,7 @@ async function main() {
 
     const tx = await contract.deposit({
       value: DEPOSIT_AMOUNT,
-      gasLimit: 800000, // Conservative gas limit
+      gasLimit: GAS_LIMIT, // Conservative gas limit
       gasPrice: feeData.gasPrice,
     });
 

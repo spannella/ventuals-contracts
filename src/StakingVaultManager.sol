@@ -14,6 +14,10 @@ contract StakingVaultManager is Base, IStakingVaultManager {
     using Converters for *;
     using StructuredLinkedList for StructuredLinkedList.List;
 
+    uint256 public constant CLAIM_WINDOW_BUFFER_DEFAULT = 12 hours;
+    uint256 public constant WITHDRAWAL_CLAIM_DELAY = 7 days;
+    uint256 public constant BATCH_MIN_DELAY = 1 days;
+
     /// forge-lint: disable-next-line(mixed-case-variable)
     VHYPE public vHYPE;
 
@@ -105,8 +109,8 @@ contract StakingVaultManager is Base, IStakingVaultManager {
         nextWithdrawId = 1;
         lastProcessedWithdrawId = 0;
 
-        // Set claim window buffer to 12 hours
-        claimWindowBuffer = 12 hours;
+        // Set claim window buffer to default value
+        claimWindowBuffer = CLAIM_WINDOW_BUFFER_DEFAULT;
     }
 
     /// @inheritdoc IStakingVaultManager
@@ -233,7 +237,8 @@ contract StakingVaultManager is Base, IStakingVaultManager {
 
         Batch memory batch = batches[withdraw.batchIndex];
         require(
-            batch.finalizedAt > 0 && block.timestamp > batch.finalizedAt + 7 days + claimWindowBuffer,
+            batch.finalizedAt > 0
+                && block.timestamp > batch.finalizedAt + WITHDRAWAL_CLAIM_DELAY + claimWindowBuffer,
             WithdrawUnclaimable()
         );
 
@@ -334,7 +339,8 @@ contract StakingVaultManager is Base, IStakingVaultManager {
             if (lastFinalizedBatchTime != 0) {
                 // There's a 1 day lockup period after HYPE is staked to a validator, so we enforce a 1 day delay between batches
                 require(
-                    block.timestamp > lastFinalizedBatchTime + 1 days, BatchNotReady(lastFinalizedBatchTime + 1 days)
+                    block.timestamp > lastFinalizedBatchTime + BATCH_MIN_DELAY,
+                    BatchNotReady(lastFinalizedBatchTime + BATCH_MIN_DELAY)
                 );
 
                 // The documentation states that the validator stake will be unlocked after 1 day. However, the documentation
@@ -496,7 +502,7 @@ contract StakingVaultManager is Base, IStakingVaultManager {
         if (batch.finalizedAt == 0) {
             return type(uint256).max;
         }
-        return batch.finalizedAt + 7 days + claimWindowBuffer;
+        return batch.finalizedAt + WITHDRAWAL_CLAIM_DELAY + claimWindowBuffer;
     }
 
     /// @inheritdoc IStakingVaultManager
@@ -712,7 +718,7 @@ contract StakingVaultManager is Base, IStakingVaultManager {
 
         // Only allow slashing batches that are within the slash window
         require(
-            block.timestamp <= batch.finalizedAt + 7 days + claimWindowBuffer,
+            block.timestamp <= batch.finalizedAt + WITHDRAWAL_CLAIM_DELAY + claimWindowBuffer,
             CannotSlashBatchOutsideSlashWindow(batchIndex)
         );
 
@@ -736,13 +742,13 @@ contract StakingVaultManager is Base, IStakingVaultManager {
 
     /// @notice Execute an emergency staking withdraw
     /// @dev Immediately undelegates HYPE and initiates a staking withdraw
-    /// @dev Amount will be available in the StakingVault's spot account balance after 7 days.
+    /// @dev Amount will be available in the StakingVault's spot account balance after the withdrawal claim delay.
     /// @param amount Amount to withdraw (in 18 decimals)
     /// @param purpose Description of withdrawal purpose
     function emergencyStakingWithdraw(uint256 amount, string calldata purpose) external onlyOwner {
         // Immediately undelegate HYPE
-        // Queue a staking withdrawal, subject to the 7-day withdrawal queue. Amount will be available in
-        // the StakingVault's spot account balance after 7 days.
+        // Queue a staking withdrawal, subject to the withdrawal claim delay. Amount will be available in
+        // the StakingVault's spot account balance after the withdrawal claim delay.
         stakingVault.unstake(validator, amount.to8Decimals());
         emit EmergencyStakingWithdraw(msg.sender, amount, purpose);
     }

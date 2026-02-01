@@ -33,6 +33,12 @@ git submodule update --init --recursive
 forge build
 ```
 
+For a more detailed setup guide (including script usage), see
+[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+
+For a file-by-file breakdown of the repo, see
+[docs/FILE_GUIDES.md](docs/FILE_GUIDES.md).
+
 ## Testing
 
 ```bash
