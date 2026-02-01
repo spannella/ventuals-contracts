@@ -8,12 +8,20 @@ src = "src"
 out = "out"
 libs = ["lib"]
 optimizer = true
-optimizer_runs = 100  # Increase this number for smaller bytecode
+optimizer_runs = 100
 via_ir = true  # Use the IR-based compiler for better optimization
 remappings = [
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
 ]
+
+[profile.deploy]
+# Size-focused settings for networks with strict contract size limits.
+optimizer = true
+optimizer_runs = 1
+via_ir = true
+bytecode_hash = "none"
+cbor_metadata = false
 
 [rpc_endpoints]
 mainnet = "https://rpc.hyperliquid.xyz/evm"

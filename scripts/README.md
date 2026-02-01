@@ -25,7 +25,8 @@ A script to deposit HYPE tokens into the StakingVaultManager contract.
 
 ### Description
 
-This script calls the `deposit()` function on the StakingVaultManager contract with 0.01 HYPE.
+This script calls the `deposit()` function on the StakingVaultManager contract with a configurable
+deposit amount (defaults to 0.01 HYPE).
 
 ### Prerequisites
 
@@ -35,9 +36,14 @@ This script calls the `deposit()` function on the StakingVaultManager contract w
 IS_TESTNET=true             # true for testnet, false for mainnet
 STAKING_VAULT_MANAGER=0x... # Contract address
 PRIVATE_KEY=0x...           # Your wallet private key
+DEPOSIT_AMOUNT=0.01         # Optional: amount in HYPE (defaults to 0.01)
+GAS_LIMIT=800000            # Optional: gas limit override
+TESTNET_RPC_URL=...         # Optional: override testnet RPC URL
+MAINNET_RPC_URL=...         # Optional: override mainnet RPC URL
 ```
 
-**HYPE Balance**: Ensure your wallet has sufficient HYPE tokens (at least 0.01 HYPE plus gas fees)
+**HYPE Balance**: Ensure your wallet has sufficient HYPE tokens for the configured deposit amount
+plus gas fees.
 
 ### Usage
 
@@ -59,7 +65,7 @@ node scripts/call-deposit.js
 2. **Network Detection**: Automatically selects RPC URL based on `IS_TESTNET` flag
 3. **Wallet Setup**: Connects to your wallet using the provided private key
 4. **Balance Check**: Verifies you have sufficient HYPE for the deposit
-5. **Transaction**: Calls `deposit()` with 0.01 HYPE
+5. **Transaction**: Calls `deposit()` with the configured deposit amount
 6. **Confirmation**: Waits for transaction confirmation and displays results
 
 ### Output
@@ -69,7 +75,7 @@ The script provides detailed output including:
 - 🌐 Network (Testnet/Mainnet)
 - 📋 Contract address being called
 - 👤 Wallet address being used
-- 💰 Deposit amount (0.01 HYPE)
+- 💰 Deposit amount (defaults to 0.01 HYPE)
 - 💳 Current wallet balance
 - ⛽ Current gas price
 - 📝 Transaction hash
