@@ -59,6 +59,25 @@ contract VHYPETest is Test {
         vHYPE.mint(notManager, amount);
     }
 
+    function test_Mint_WhenPaused() public {
+        uint256 amount = 1000e18;
+
+        vm.prank(owner);
+        roleRegistry.pause(address(vHYPE));
+
+        vm.prank(manager);
+        vm.expectRevert();
+        vHYPE.mint(manager, amount);
+    }
+
+    function test_Mint_ToZeroAddress(uint256 amount) public {
+        vm.assume(amount > 0);
+
+        vm.prank(manager);
+        vm.expectRevert();
+        vHYPE.mint(address(0), amount);
+    }
+
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
     /*                       Tests: Burn                          */
     /*.•°:°.´+˚.*°.˚:*.´•*.+°.•°:´*.´•*.•°.•°:°.´:•˚°.*°.˚:*.´+°.•*/
@@ -213,6 +232,26 @@ contract VHYPETest is Test {
         vm.prank(manager);
         vm.expectRevert();
         vHYPE.burnFrom(user, burnAmount);
+    }
+
+    function test_BurnFrom_WithMaxAllowance(address user, uint256 amount, uint256 burnAmount) public {
+        vm.assume(user != address(0));
+        vm.assume(user != manager);
+        vm.assume(amount > 0);
+        vm.assume(burnAmount > 0);
+        vm.assume(amount >= burnAmount);
+
+        vm.prank(manager);
+        vHYPE.mint(user, amount);
+
+        vm.prank(user);
+        vHYPE.approve(manager, type(uint256).max);
+
+        vm.prank(manager);
+        vHYPE.burnFrom(user, burnAmount);
+
+        assertEq(vHYPE.balanceOf(user), amount - burnAmount);
+        assertEq(vHYPE.allowance(user, manager), type(uint256).max);
     }
 
     /*´:°•.°+.*•´.*:˚.°*.˚•´.°:°•.°•.*•´.*:˚.°*.˚•´.°:°•.°+.*•´.*:*/
