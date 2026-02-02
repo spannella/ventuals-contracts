@@ -41,6 +41,8 @@ For a file-by-file breakdown of the repo, see
 
 ## Testing
 
+Foundry (forge) must be installed before running the tests.
+
 ```bash
 # Run tests
 forge test

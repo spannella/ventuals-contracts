@@ -214,6 +214,15 @@ contract RoleRegistryTest is Test {
         assertTrue(roleRegistry.isPaused(fuzzContract));
     }
 
+    function test_Pause_MultipleContractsIndependent(address contractA, address contractB) public {
+        vm.assume(contractA != contractB);
+
+        vm.startPrank(owner);
+        roleRegistry.pause(contractA);
+        assertTrue(roleRegistry.isPaused(contractA));
+        assertFalse(roleRegistry.isPaused(contractB));
+    }
+
     function test_Pause_NotOwner(address fuzzContract, address fuzzUser) public {
         vm.assume(fuzzUser != owner);
 
@@ -229,6 +238,21 @@ contract RoleRegistryTest is Test {
         assertTrue(roleRegistry.isPaused(fuzzContract));
         roleRegistry.unpause(fuzzContract);
         assertFalse(roleRegistry.isPaused(contractToTest));
+    }
+
+    function test_Unpause_OnlyTarget(address contractA, address contractB) public {
+        vm.assume(contractA != contractB);
+
+        vm.startPrank(owner);
+        roleRegistry.pause(contractA);
+        roleRegistry.pause(contractB);
+        assertTrue(roleRegistry.isPaused(contractA));
+        assertTrue(roleRegistry.isPaused(contractB));
+
+        roleRegistry.unpause(contractA);
+
+        assertFalse(roleRegistry.isPaused(contractA));
+        assertTrue(roleRegistry.isPaused(contractB));
     }
 
     function test_Unpause_NotOwner(address fuzzContract, address fuzzUser) public {
